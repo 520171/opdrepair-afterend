@@ -3,20 +3,22 @@ var express = require('express');
 var router = express.Router();
 const getUload = require('../handleUploads/handleUpload');
 const server = require('../server/server').users;
+const utils = require('../utils/corpUtils')
+const config = require('../config/config').corpsConfig
 // var upload = multer({ dest: 'uploads/'}) // 文件储存路径
 // upload.single('file')//中的参数是post提交的文件的key
 
 let path = 'medias';
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+// router.get('/', function(req, res, next) {
+//   res.send('respond with a resource');
+// });
 
 //上传报修附件，并将附件地址存入数据库 !!!
 router.post('/uploadImage', getUload(path), function(req, res, next) {
-  console.log(req.body);
-  console.log(req.file);
+  // console.log(req.body);
+  // console.log(req.file);
   let sid = req.body.insertId;
   let url = `https://www.opdgr.cn:4433/${path}/${req.file.filename}`;
   let isImg = ('video/mp4' == req.file.mimetype ? 0:1);
@@ -42,9 +44,19 @@ router.post('/repair',  function(req, res, next) {
     console.log(msg);
   })
   .catch(function(msg){
-    res.json({message: "fail"});
+    res.json({message: "fail"})
     //console.log('fail');
-    console.log(msg);});
+    console.log(msg)})
+
+  utils.getAccessToken(config.AgentId, false)
+    .then(token => utils.sendTemplateMsg(
+      token,
+      config.AgentId,
+      'ZhongJunJie',
+      req.body.name,
+      req.body.departmentName,
+      req.body.detailMsg))
+    .catch(err => console.log(err))
 });
 
 

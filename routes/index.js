@@ -1,26 +1,38 @@
 const express = require('express');
 const router = express.Router();
 const server = require('../server/server').index;
+const crypt = require('../utils/crypt')
 
-
-/* GET home page. */
-router.get('/', function (req, res, next) {
-  console.log(req.data);
-  res.render('index', {title: 'Express'});
-  //res.json({code: "200"});
-
-});
+router.post('/autoLogin', function(req, res, next){
+  if (req.session.flag) {
+    res.json(req.session.flag)
+  }else{
+    res.json({code: 500, msg: "账号或密码错误"})
+  }
+})
 
 // 系统登陆
 router.post('/login', function (req, res, next) {
-  console.log(req.body);
-  const user = {avatar: "", id: "", name: "", username: ""}
+  // console.log(req.body);
+  const user = { avatar: "", id: "", name: "", username: ""}
+  const flag = req.body.remeber
   server.logSys("tb_sys", 's_account', req.body.username, 's_password', req.body.password)
     .then(function (msg) {
-      console.log(msg);
+      // console.log(msg);
       if (1 === msg.length) {
         user.name = msg[0].s_account
         user.username = msg[0].s_name
+        req.session.flag = { code: 200, user: user, msg: "请求成功" }
+        if (flag) {
+          const encrypt = crypt.encrypt(JSON.stringify({account: req.body.username, password: req.body.password}))
+          res.cookie('user', encrypt, {
+            maxAge: 1000*60*60*24*30
+          })
+        } else {
+          res.cookie('user', '', {
+            maxAge: -1
+          })
+        }
         res.json({code: 200, user: user, msg: "请求成功"})
       } else {
         res.json({code: 500, msg: "账号或密码错误"})
@@ -30,12 +42,13 @@ router.post('/login', function (req, res, next) {
       console.log(msg);
       res.json({code: 500, msg: "请求失败"});
     });
+
 });
 
 // //////////////////////////////员工管理/////////////////////////////////////////
 // 分页查询用户 并获取记录数
 router.post('/listpage', function (req, res, next){
-  console.log(req.body)
+  // console.log(req.body)
   const result = {total: 0, users: [], departments: []}
   Promise.all([
     server.checkTotalNum('tb_user', 'u_id', 'u_name', req.body.params.name),
@@ -162,13 +175,13 @@ router.post('/updateDepartment', function (req, res, next){
 // /////////////////////////报修记录管理////////////////////////////////
 router.post('/listService', function (req, res, next) {
   const result = {total: 0, repairs: []}
-  console.log(req.body)
+  // console.log(req.body)
   Promise.all([
     server.checkTotalServicesNum( 'u_name', '', req.body.params.name),
     server.checkRepairs('u_name', req.body.params.page, req.body.params.name),
   ])
     .then(msgs => {
-      console.log(msgs[1]);
+      // console.log(msgs[1]);
       result.total = msgs[0]
       result.repairs = msgs[1]
       res.json(result)

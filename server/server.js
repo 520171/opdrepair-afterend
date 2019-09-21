@@ -118,6 +118,19 @@ const checkTotalServicesNum = function(colName, name){
 const removeRepairs = function(tbName, attributename, attributes){
     return dao.deleteRows(tbName, attributename, attributes)
 }
+// ////////////////////////accesstoken处理/////////////////////////////////////
+// 插入accesstoken
+const addAccessToken = function(tbName, arr1, arr2){
+    return addRepairMsg(tbName, arr1, arr2)
+}
+
+const editAccTokenByAgentId = function(msg, date, agentId){
+    return dao.updateAccTokenByAgentId(msg, date, agentId)
+}
+
+const showAccessToken = function(tbName, colName, attributename, attribute){
+    return dao.select(tbName, colName, attributename, attribute);
+}
 
 
 
@@ -127,3 +140,4 @@ module.exports.users = { checkAll, addRepairMsg, showRecords, addImgUrl, showAnn
 module.exports.index = {logSys, checkAllUsers, checkTotalNum, checkAllDepartments, addDepartment,
     removeDepartments, editDepartment, addUser, removeUsers, checkAll, editUser, checkRepairs,
     checkTotalServicesNum, removeRepairs }
+module.exports.acc = { addAccessToken, showAccessToken, editAccTokenByAgentId }

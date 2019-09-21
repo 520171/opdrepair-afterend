@@ -270,8 +270,25 @@ const selectTotalServicesNum = (colName, name) => {
     })
 }
 
+// ////////////////////////acctoken///////////////////////
+
+
+const updateAccTokenByAgentId = function(msg, date, agentId){
+    return new  Promise((resolve, reject) => {
+        let sql = 'update tb_acctoken set at_msg = ?, at_date = ? where at_agentid = ?'
+        const replaces = [msg, date, agentId]
+        sql = mysql.format(sql, replaces)
+        db.query(sql, (err, rows) => {
+            if(err) {
+                reject(err);
+            }
+            resolve(rows);
+        })
+    });
+}
+
 
 module.exports = { selectRecords, insert, select, selectDialogs, login, loginSys, selectTotalNum,
      selectAllUsers, selectAllDepartments, show, deleteRows, updateDepartment, updateUser, selectRepairs,
-    selectTotalServicesNum}
+    selectTotalServicesNum, updateAccTokenByAgentId }
 

@@ -1,18 +1,42 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var bodyParser = require('body-parser');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const bodyParser = require('body-parser');
+require ('body-parser-xml')(bodyParser);
+const indexRouter = require('./routes/index');
+const usersRouter = require('./routes/users');
+const qywx = require('./routes/qywx')
+const history =  require('connect-history-api-fallback'); // 使用connect-history-api-fallback中间件
+const session = require('express-session')
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var history =  require('connect-history-api-fallback'); // 使用connect-history-api-fallback中间件
+const app = express();
+// 使用connect-history-api-fallback中间件 单页面应用防止刷新出错
 
-var app = express();
+// view engine setup
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'ejs');
+app.use(session({
+  secret: 'opdzjj',
+  resave: false,
+  saveUninitialized: false,
+  cookie : {
+    maxAge : 1000 * 60 * 60 * 2 // 设置 session 的有效时间，单位毫秒
+  }
+}))
 
+app.use(logger('dev'));
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 
-// 使用connect-history-api-fallback中间件
+// parse application/x-www-form-urlencoded baodyparser可实现直接访问req.body
+app.use(bodyParser.urlencoded({extended: false}));
+// parse application/json
+app.use(bodyParser.json());
+app.use(bodyParser.xml())
+
 app.use(history({
   htmlAcceptHeaders: ['text/html', 'application/xhtml+xml'],
   rewrites: [
@@ -21,39 +45,42 @@ app.use(history({
       to: function (context) {
         return "/";
       }
-    }
+    },
+    {
+      from: /^\/qywx/,
+      to: function (context) {
+        return context.parsedUrl.path;
+      }
+    },
+    // {
+    //   from: /^\/qywx/,
+    //   to: function (context) {
+    //     return context.parsedUrl.path;
+    //   }
+    // }
   ]
-}));
+}))
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// app.use( history())
 
 app.all("*", (req, res, next) => {
-  if('https' === req.protocol){
+  // console.log(req.cookies);
+  if('https' === req.protocol && req.hostname.startsWith('www.')){
     next()
-  }else{
-    // console.log('http', req.host)
-    console.log(`https://${req.hostname}:4433${req.path}`)
-    res.redirect(307, `https://${req.hostname}:4433${req.path}`)
+  } else {
+    console.log(`https://www.opdgr.cn${req.path}`)
+    res.redirect(307, `https://www.opdgr.cn${req.path}`)
   }
-});
+})
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({extended: false}));
-app.use(cookieParser());
+// 静态资源放在请求拦截之后
 app.use(express.static(path.join(__dirname, 'public/dist')));
 app.use(express.static(path.join(__dirname, 'public/uploads')));
-
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({extended: false}));
-// parse application/json
-app.use(bodyParser.json());
 
 //路由
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/qywx', qywx)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

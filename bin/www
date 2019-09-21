@@ -22,7 +22,7 @@ const options = {
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '4433');
+var port = normalizePort(process.env.PORT || '443');
 app.set('port', port);
 
 /**
@@ -45,7 +45,7 @@ server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 
-httpServer.listen(800);
+httpServer.listen(80);
 httpServer.on('error', onError);
 httpServer.on('listening', onListening);
 
