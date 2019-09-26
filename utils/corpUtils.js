@@ -1,8 +1,8 @@
 const request = require('request')
 const config = require('../config/config').corpsConfig
 const accToken = require('../server/server').acc
-const sha1 = require('node-sha1'); //加密模块
-const crypto = require('crypto')
+// const sha1 = require('node-sha1'); //加密模块
+// const crypto = require('crypto')
 
 
 const getAccessToken = function (agentID, edit=false) {
@@ -46,14 +46,13 @@ const getAccessToken = function (agentID, edit=false) {
   })
 }
 
-const requestAccessToken = function(agentID){
-  let result = 0;
+const requestAccessToken = function(){
+  // let result = 0;
   // const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=${grant_type}&appid=${appid}&secret=${secret}`;
   const url = `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${config.corpid}&corpsecret=${config.corpsecret}`
   return new Promise((res, rej) => {
     request(url, function(error, response, body) {
       body = JSON.parse(body)
-      console.log(body)
       if (!error && response.statusCode == 200 && 0 == body.errcode) {
         res(body.access_token)
       } else {
@@ -98,60 +97,61 @@ function sendTemplateMsg(access_token, agentId, touser, userName, department, de
   })
 }
 
+
 // /////////////解密/////////////////////////////////////////////////////
-
-function decrypt(req, token, encodingAESKey, encrypt) {
-  const query = req.query;
-  // console.log('Request URL: ', req.url);
-  const signature = query.msg_signature;
-  const timestamp = query.timestamp;
-  const nonce = query.nonce;
-  let echostr;
-  // console.log('encrypt', encrypt);
-  if (!encrypt) {
-    echostr = query.echostr;
-  } else {
-    echostr = encrypt;
-  }
-  // console.log('timestamp: ', timestamp);
-  // console.log('nonce: ', nonce);
-  // console.log('signature: ', signature);
-  // 将 token/timestamp/nonce 三个参数进行字典序排序
-  const tmpArr = [token, timestamp, nonce, echostr];
-  const tmpStr = sha1(tmpArr.sort().join(''));
-  console.log('Sha1 String: ', tmpStr);
-  // 验证排序并加密后的字符串与 signature 是否相等
-  if (tmpStr === signature) {
-    // 原样返回echostr参数内容
-    const result = _decode(echostr, encodingAESKey)
-    // console.log('last', result);
-    // console.log('Check Success');
-    return result;
-  } else {
-    // console.log('Check Failed');
-    return 'failed';
-  }
-}
-
-function PKCS7Decoder (buff) {
-  let pad = buff[buff.length - 1];
-  if (pad < 1 || pad > 32) {
-    pad = 0;
-  }
-  return buff.slice(0, buff.length - pad);
-}
-
-function _decode(data, encodingAESKey) {
-  let aesKey = Buffer.from(encodingAESKey + '=', 'base64');
-  let aesCipher = crypto.createDecipheriv("aes-256-cbc", aesKey, aesKey.slice(0, 16));
-  aesCipher.setAutoPadding(false);
-  let decipheredBuff = Buffer.concat([aesCipher.update(data, 'base64'), aesCipher.final()]);
-  decipheredBuff = PKCS7Decoder(decipheredBuff);
-  let len_netOrder_corpid = decipheredBuff.slice(16);
-  let msg_len = len_netOrder_corpid.slice(0, 4).readUInt32BE(0);
-  const result = len_netOrder_corpid.slice(4, msg_len + 4).toString();
-  return result; // 返回一个解密后的明文-
-}
+//
+// function decrypt(req, token, encodingAESKey, encrypt) {
+//   const query = req.query;
+//   // console.log('Request URL: ', req.url);
+//   const signature = query.msg_signature;
+//   const timestamp = query.timestamp;
+//   const nonce = query.nonce;
+//   let echostr;
+//   // console.log('encrypt', encrypt);
+//   if (!encrypt) {
+//     echostr = query.echostr;
+//   } else {
+//     echostr = encrypt;
+//   }
+//   // console.log('timestamp: ', timestamp);
+//   // console.log('nonce: ', nonce);
+//   // console.log('signature: ', signature);
+//   // 将 token/timestamp/nonce 三个参数进行字典序排序
+//   const tmpArr = [token, timestamp, nonce, echostr];
+//   const tmpStr = sha1(tmpArr.sort().join(''));
+//   console.log('Sha1 String: ', tmpStr);
+//   // 验证排序并加密后的字符串与 signature 是否相等
+//   if (tmpStr === signature) {
+//     // 原样返回echostr参数内容
+//     const result = _decode(echostr, encodingAESKey)
+//     // console.log('last', result);
+//     // console.log('Check Success');
+//     return result;
+//   } else {
+//     // console.log('Check Failed');
+//     return 'failed';
+//   }
+// }
+//
+// function PKCS7Decoder (buff) {
+//   let pad = buff[buff.length - 1];
+//   if (pad < 1 || pad > 32) {
+//     pad = 0;
+//   }
+//   return buff.slice(0, buff.length - pad);
+// }
+//
+// function _decode(data, encodingAESKey) {
+//   let aesKey = Buffer.from(encodingAESKey + '=', 'base64');
+//   let aesCipher = crypto.createDecipheriv("aes-256-cbc", aesKey, aesKey.slice(0, 16));
+//   aesCipher.setAutoPadding(false);
+//   let decipheredBuff = Buffer.concat([aesCipher.update(data, 'base64'), aesCipher.final()]);
+//   decipheredBuff = PKCS7Decoder(decipheredBuff);
+//   let len_netOrder_corpid = decipheredBuff.slice(16);
+//   let msg_len = len_netOrder_corpid.slice(0, 4).readUInt32BE(0);
+//   const result = len_netOrder_corpid.slice(4, msg_len + 4).toString();
+//   return result; // 返回一个解密后的明文-
+// }
 
 // requestAccessToken()
 //   .then(msg => console.log(msg))
@@ -239,6 +239,5 @@ const handlePostMsg = function(req){
 module.exports = {
   getAccessToken,
   sendTemplateMsg,
-  decrypt,
   handlePostMsg
 }

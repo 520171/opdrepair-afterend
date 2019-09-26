@@ -14,7 +14,15 @@ const corpsConfig = {
   encodingAESKey: '7GAjqNCeI69B93q4XQXkepbGpaNqom3S2D9PSRNMcPQ'
 }
 
+// 小程序开发配置
+const xcxConfig = {
+  AppID: 'wx4b26aefcc1c5b55f',
+  AppSecret: 'a3671ea331d4c4669c9f3c86ef723928',
+  grant_type: 'client_credential'
+}
+
 module.exports = {
   config,
-  corpsConfig
+  corpsConfig,
+  xcxConfig
 }

@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const server = require('../server/server').index;
 const crypt = require('../utils/crypt')
+const fs = require('fs')
+const path = require('path');
+const xcxUtils = require('../utils/xcxUtils')
 
 router.post('/autoLogin', function(req, res, next){
   if (req.session.flag) {
@@ -177,7 +180,7 @@ router.post('/listService', function (req, res, next) {
   const result = {total: 0, repairs: []}
   // console.log(req.body)
   Promise.all([
-    server.checkTotalServicesNum( 'u_name', '', req.body.params.name),
+    server.checkTotalServicesNum( 'u_name', req.body.params.name),
     server.checkRepairs('u_name', req.body.params.page, req.body.params.name),
   ])
     .then(msgs => {
@@ -197,13 +200,47 @@ router.post('/removeRepairs', function (req, res, next){
   console.log(req.body)
   server.removeDepartments('tb_service', 's_id', req.body.params.id)
     .then((msg) => {
-      console.log(msg);
-      res.json({code: 200, msg: "删除报修记录成功"});
+      // console.log(msg)
+      res.json({code: 200, msg: "删除报修记录成功"})
     })
     .catch((msg) => {
-      console.log(msg);
+      // console.log(msg)
       res.json({code: 500, msg: "删除报修记录失败"});
     })
+})
+// 获取统计数据
+router.post('/showStatistics', function(req, res, next){
+  Promise.all([server.showStatistics(), server.showStatistics2()])
+    .then(msgs => {
+      res.json( {code: 200, msg: msgs[0], msg2: msgs[1]} )
+      // console.log(msgs[0])
+      // console.log(msgs[1])
+    })
+    .catch(err => res.json({code: 500, msg: "数据库访问失败！！！"}))
+})
+
+// 返回QRCode
+router.post('/showQRCode', function(req, res, next){
+  const dirPath = path.join(__dirname, `../public/uploads/QRCode/${req.body.params.name}_${req.body.params.jobNo}.jpg`)
+  const imgDir = `https://www.opdgr.cn/QRCode/${req.body.params.name}_${req.body.params.jobNo}.jpg`
+  fs.exists(dirPath, function(exists){
+    if(!exists){
+      // '不存在'
+      xcxUtils.getAccessToken('1000003')
+        .then(token => {
+          xcxUtils.getQRCode('1000003', token , req.body.params.name, req.body.params.jobNo)
+            .then(() => res.json({ imgDir }))
+            .catch( () => {
+              console.log(233333)
+              res.sendStatus(404)
+            } )
+        })
+        .catch(err => { console.log(err) })
+    }else{
+      res.json({ imgDir })
+    }
+
+  })
 })
 
 module.exports = router;

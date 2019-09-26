@@ -287,8 +287,35 @@ const updateAccTokenByAgentId = function(msg, date, agentId){
     });
 }
 
+// //////////////////统计//////////////////////////////////
+const selectStatistics = function(){
+    return new  Promise((resolve, reject) => {
+        let sql = 'SELECT tb_user.d_no, d_name as name, count(tb_user.d_no) as value FROM tb_service inner join tb_user on tb_service.u_jobno = tb_user.u_jobno inner join tb_department on tb_department.d_no = tb_user.d_no  group by tb_user.d_no;'
+        console.log(sql);
+        db.query(sql, (err, rows) => {
+            if(err) {
+                reject(err)
+            }
+            resolve(rows)
+        })
+    });
+}
+
+const selectStatistics2 = function(){
+    return new  Promise((resolve, reject) => {
+        let sql = 'SELECT s_type as type, count(s_type) as num FROM tb_service group by s_type;'
+        console.log(sql);
+        db.query(sql, (err, rows) => {
+            if(err) {
+                reject(err)
+            }
+            resolve(rows)
+        })
+    });
+}
+
 
 module.exports = { selectRecords, insert, select, selectDialogs, login, loginSys, selectTotalNum,
      selectAllUsers, selectAllDepartments, show, deleteRows, updateDepartment, updateUser, selectRepairs,
-    selectTotalServicesNum, updateAccTokenByAgentId }
+    selectTotalServicesNum, updateAccTokenByAgentId, selectStatistics,selectStatistics2 }
 

@@ -132,12 +132,18 @@ const showAccessToken = function(tbName, colName, attributename, attribute){
     return dao.select(tbName, colName, attributename, attribute);
 }
 
+const showStatistics = function () {
+    return dao.selectStatistics()
+}
 
+const showStatistics2 = function () {
+    return dao.selectStatistics2()
+}
 
 
 module.exports.users = { checkAll, addRepairMsg, showRecords, addImgUrl, showAnnex, showDialogs,
     addDialog, login, checkUserType }
 module.exports.index = {logSys, checkAllUsers, checkTotalNum, checkAllDepartments, addDepartment,
     removeDepartments, editDepartment, addUser, removeUsers, checkAll, editUser, checkRepairs,
-    checkTotalServicesNum, removeRepairs }
+    checkTotalServicesNum, removeRepairs, showStatistics, showStatistics2 }
 module.exports.acc = { addAccessToken, showAccessToken, editAccTokenByAgentId }

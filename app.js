@@ -15,8 +15,8 @@ const app = express();
 // 使用connect-history-api-fallback中间件 单页面应用防止刷新出错
 
 // view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-// app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 app.use(session({
   secret: 'opdzjj',
   resave: false,

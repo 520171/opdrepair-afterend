@@ -20,7 +20,7 @@ router.post('/uploadImage', getUload(path), function(req, res, next) {
   // console.log(req.body);
   // console.log(req.file);
   let sid = req.body.insertId;
-  let url = `https://www.opdgr.cn:4433/${path}/${req.file.filename}`;
+  let url = `https://www.opdgr.cn/${path}/${req.file.filename}`;
   let isImg = ('video/mp4' == req.file.mimetype ? 0:1);
   server.addImgUrl('tb_annex', ['s_id', 'a_url', 'a_isImg'], [sid, url, isImg])
   .then(function(msg){
@@ -117,13 +117,13 @@ router.post('/getAnnex',  function(req, res, next) {
 router.post('/getDialogs',  function(req, res, next) {
   console.log(req.body);
   let sid = req.body.sid;
-  console.log(sid);
+  // console.log(sid);
   server.showDialogs(sid)
   .then(function(msg){
-    console.log(msg);
+    // console.log(msg);
     res.json({message: msg});})
   .catch(function(msg){
-    console.log(msg);
+    // console.log(msg);
     res.json({message: "fail"});});
 });
 
@@ -136,7 +136,7 @@ router.post('/login',  function(req, res, next) {
     res.json({message: 1 === msg.length?'ok':'fail', msg: msg});})
   .catch(function(msg){
     console.log(msg);
-    res.json({message: "fail"});});
+    res.json({message: "fail"})})
 });
 
 
