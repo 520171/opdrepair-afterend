@@ -61,8 +61,8 @@ const requestAccessToken = function(){
 }
 
 // 获取小程序码
-function getQRCode(agentId, access_token, name, jobNo) {
-  const url = `https://api.weixin.qq.com/cgi-bin/wxaapp/createwxaqrcode?access_token=${ access_token }` //发送模板消息的接口
+const getQRCode = function(agentId, access_token, name, jobNo) {
+  const url = `https://api.weixin.qq.com/wxa/getwxacode?access_token=${ access_token }` //发送模板消息的接口
   const requestData = { //发送模板消息的数据
     path: `pages/index/index?name=${name}&jobNo=${jobNo}`
   }
@@ -77,7 +77,7 @@ function getQRCode(agentId, access_token, name, jobNo) {
       encoding: 'base64'
     }, function(error, response, body) {
       const msg = Buffer.from(body, 'base64').toString()
-      // console.log(msg);
+      // console.log(msg)
       if (!error && response.statusCode == 200) {
         // console.log(body)
         if (-1 == msg.indexOf('"errcode":40001')) {
@@ -107,9 +107,25 @@ function getQRCode(agentId, access_token, name, jobNo) {
   })
 }
 
+const getopenId = function (code, appid = config.AppID, secret = config.AppSecret) {
+  const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`
+  return new Promise((res, rej) => {
+    request(url, function(error, response, body) {
+      body = JSON.parse(body)
+      if (!error && response.statusCode == 200) {
+        res(body)
+      } else {
+        rej('err')
+      }
+    })
+  })
+}
+
+
 module.exports = {
   getQRCode,
-  getAccessToken
+  getAccessToken,
+  getopenId
 }
 
 // getAccessToken('1000003', false)

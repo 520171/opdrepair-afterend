@@ -1,4 +1,4 @@
-const dao = require("../dao/dao");
+const dao = require("../dao/dao")
 
 /*
 !!!
@@ -11,46 +11,46 @@ const dao = require("../dao/dao");
 
 const addRepairMsg = function(tbName, arr1, arr2){
     /* try {
-        let result = await dao.insert(tbName, arr1, arr2);
-        result;
+        let result = await dao.insert(tbName, arr1, arr2)
+        result
     } catch (e) {
-        return e;
+        return e
     } */
-    return dao.insert(tbName, arr1, arr2);
+    return dao.insert(tbName, arr1, arr2)
 
 }
 
 //将附件路径写入持久层!!!
 const addImgUrl = function(tbName, arr1, arr2){
-    return addRepairMsg(tbName, arr1, arr2);
+    return addRepairMsg(tbName, arr1, arr2)
 }
 
 //将留言记录写入持久层!!!
 const addDialog = function(tbName, arr1, arr2){
-    return addRepairMsg(tbName, arr1, arr2);
+    return addRepairMsg(tbName, arr1, arr2)
 }
 
 /////////////////////////////////////////////////////////////////
 
 //获取报修记录!!!
 const showRecords = function(jobNo, flag){
-    return dao.selectRecords(jobNo, flag);
+    return dao.selectRecords(jobNo, flag)
 }
 
 const showAnnex = function(tbName, colName, attributename, attribute){
-    return dao.select(tbName, colName, attributename, attribute);
+    return dao.select(tbName, colName, attributename, attribute)
 }
 
 const showDialogs = function(sid){
-    return dao.selectDialogs(sid);
+    return dao.selectDialogs(sid)
 }
 
 const login = function( attributename, attribute, attributename2, attribute2){
-    return dao.login( attributename, attribute, attributename2, attribute2);
+    return dao.login( attributename, attribute, attributename2, attribute2)
 }
 
 const logSys = async function(tblName, attributename, attribute, attributename2, attribute2){
-    return dao.loginSys(tblName, attributename, attribute, attributename2, attribute2);
+    return dao.loginSys(tblName, attributename, attribute, attributename2, attribute2)
 }
 
 const checkAllUsers = function(pageNo, name){
@@ -58,7 +58,7 @@ const checkAllUsers = function(pageNo, name){
 }
 
 const checkTotalNum = function(tblName, key, colName, name){
-    return dao.selectTotalNum(tblName, key, colName, name);
+    return dao.selectTotalNum(tblName, key, colName, name)
 }
 
 const checkAllDepartments = function(tblName, pageNo, name){
@@ -76,7 +76,7 @@ const checkUserType = function(tbName, colName, attributename, attribute){
 
 // 新增员工
 const addUser = function(tbName, arr1, arr2){
-    return addRepairMsg(tbName, arr1, arr2);
+    return addRepairMsg(tbName, arr1, arr2)
 }
 
 // 删除员工
@@ -92,7 +92,7 @@ const editUser = function(attribute, attribute2, attribute3, attribute4, attribu
 // //////////////////////////////部门管理///////////////////////
 // 新增部门
 const addDepartment = function(tbName, arr1, arr2){
-    return addRepairMsg(tbName, arr1, arr2);
+    return addRepairMsg(tbName, arr1, arr2)
 }
 
 // 删除部门
@@ -111,7 +111,7 @@ const checkRepairs =  function(colName, pageNo, name){
 }
 
 const checkTotalServicesNum = function(colName, name){
-    return dao.selectTotalServicesNum(colName, name);
+    return dao.selectTotalServicesNum(colName, name)
 }
 
 // 删除报修记录
@@ -129,7 +129,7 @@ const editAccTokenByAgentId = function(msg, date, agentId){
 }
 
 const showAccessToken = function(tbName, colName, attributename, attribute){
-    return dao.select(tbName, colName, attributename, attribute);
+    return dao.select(tbName, colName, attributename, attribute)
 }
 
 const showStatistics = function () {

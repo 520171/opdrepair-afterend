@@ -1,9 +1,9 @@
-const express = require('express');
-const router = express.Router();
-const server = require('../server/server').index;
+const express = require('express')
+const router = express.Router()
+const server = require('../server/server').index
 const crypt = require('../utils/crypt')
 const fs = require('fs')
-const path = require('path');
+const path = require('path')
 const xcxUtils = require('../utils/xcxUtils')
 
 router.post('/autoLogin', function(req, res, next){
@@ -16,12 +16,12 @@ router.post('/autoLogin', function(req, res, next){
 
 // 系统登陆
 router.post('/login', function (req, res, next) {
-  // console.log(req.body);
+  // console.log(req.body)
   const user = { avatar: "", id: "", name: "", username: ""}
   const flag = req.body.remeber
   server.logSys("tb_sys", 's_account', req.body.username, 's_password', req.body.password)
     .then(function (msg) {
-      // console.log(msg);
+      // console.log(msg)
       if (1 === msg.length) {
         user.name = msg[0].s_account
         user.username = msg[0].s_name
@@ -42,11 +42,11 @@ router.post('/login', function (req, res, next) {
       }
     })
     .catch(function (msg) {
-      console.log(msg);
-      res.json({code: 500, msg: "请求失败"});
-    });
+      console.log(msg)
+      res.json({code: 500, msg: "请求失败"})
+    })
 
-});
+})
 
 // //////////////////////////////员工管理/////////////////////////////////////////
 // 分页查询用户 并获取记录数
@@ -65,8 +65,8 @@ router.post('/listpage', function (req, res, next){
       res.json(result)
     })
     .catch(err => {
-      console.log(err);
-      res.json({code: 500, msg: "请求失败"});
+      console.log(err)
+      res.json({code: 500, msg: "请求失败"})
     })
 })
 
@@ -75,12 +75,12 @@ router.post('/addUser', function (req, res, next){
   console.log(req.body)
   server.addUser('tb_user', ['u_jobno', 'u_name', 'd_no', 'u_gender', 'u_flag'], [req.body.params.jobNum, req.body.params.name, req.body.params.d_no, req.body.params.sex, req.body.params.u_flag])
     .then((msg) => {
-      console.log(msg);
-      res.json({code: 200, msg: "添加部门成功"});
+      console.log(msg)
+      res.json({code: 200, msg: "添加部门成功"})
     })
     .catch((msg) => {
-      console.log(msg);
-      res.json({code: 500, msg: "添加部门失败"});
+      console.log(msg)
+      res.json({code: 500, msg: "添加部门失败"})
     })
 })
 
@@ -89,12 +89,12 @@ router.post('/removeUsers', function (req, res, next){
   console.log(req.body)
   server.removeDepartments('tb_user', 'u_jobno', req.body.params.id)
     .then((msg) => {
-      console.log(msg);
-      res.json({code: 200, msg: "删除员工成功"});
+      console.log(msg)
+      res.json({code: 200, msg: "删除员工成功"})
     })
     .catch((msg) => {
-      console.log(msg);
-      res.json({code: 500, msg: "删除员工失败"});
+      console.log(msg)
+      res.json({code: 500, msg: "删除员工失败"})
     })
 })
 
@@ -103,12 +103,12 @@ router.post('/updateUser', function (req, res, next){
   console.log(req.body)
   server.editUser(req.body.params.u_name, req.body.params.u_jobno, req.body.params.d_no, req.body.params.u_gender, req.body.params.u_flag, req.body.params.u_id )
     .then((msg) => {
-      console.log(msg);
-      res.json({code: 200, msg: "更新员工成功"});
+      console.log(msg)
+      res.json({code: 200, msg: "更新员工成功"})
     })
     .catch((msg) => {
-      console.log(msg);
-      res.json({code: 500, msg: "更新员工失败"});
+      console.log(msg)
+      res.json({code: 500, msg: "更新员工失败"})
     })
 })
 
@@ -128,8 +128,8 @@ router.post('/listdepartment', function (req, res, next){
       res.json(result)
   })
     .catch(err => {
-      console.log(err);
-      res.json({code: 500, msg: "请求失败"});
+      console.log(err)
+      res.json({code: 500, msg: "请求失败"})
     })
 })
 
@@ -138,12 +138,12 @@ router.post('/addDepartment', function (req, res, next){
   console.log(req.body)
   server.addDepartment('tb_department', ['d_no', 'd_name'], [req.body.params.d_no, req.body.params.d_name])
     .then((msg) => {
-      console.log(msg);
-      res.json({code: 200, msg: "添加部门成功"});
+      console.log(msg)
+      res.json({code: 200, msg: "添加部门成功"})
     })
     .catch((msg) => {
-      console.log(msg);
-      res.json({code: 500, msg: "添加部门失败"});
+      console.log(msg)
+      res.json({code: 500, msg: "添加部门失败"})
     })
 })
 
@@ -152,12 +152,12 @@ router.post('/removeDepartment', function (req, res, next){
   console.log(req.body)
   server.removeDepartments('tb_department', 'd_no', req.body.params.id)
     .then((msg) => {
-      console.log(msg);
-      res.json({code: 200, msg: "删除部门成功"});
+      console.log(msg)
+      res.json({code: 200, msg: "删除部门成功"})
     })
     .catch((msg) => {
-      console.log(msg);
-      res.json({code: 500, msg: "删除部门失败"});
+      console.log(msg)
+      res.json({code: 500, msg: "删除部门失败"})
     })
 })
 
@@ -166,12 +166,12 @@ router.post('/updateDepartment', function (req, res, next){
   console.log(req.body)
   server.editDepartment(req.body.params.d_no, req.body.params.d_name, req.body.params.d_id)
     .then((msg) => {
-      console.log(msg);
-      res.json({code: 200, msg: "更新部门成功"});
+      console.log(msg)
+      res.json({code: 200, msg: "更新部门成功"})
     })
     .catch((msg) => {
-      console.log(msg);
-      res.json({code: 500, msg: "更新部门失败"});
+      console.log(msg)
+      res.json({code: 500, msg: "更新部门失败"})
     })
 })
 
@@ -184,13 +184,13 @@ router.post('/listService', function (req, res, next) {
     server.checkRepairs('u_name', req.body.params.page, req.body.params.name),
   ])
     .then(msgs => {
-      // console.log(msgs[1]);
+      // console.log(msgs[1])
       result.total = msgs[0]
       result.repairs = msgs[1]
       res.json(result)
     })
     .catch(err => {
-      console.log(err);
+      console.log(err)
       res.json({code: 500, msg: "请求失败"})
     })
 })
@@ -205,7 +205,7 @@ router.post('/removeRepairs', function (req, res, next){
     })
     .catch((msg) => {
       // console.log(msg)
-      res.json({code: 500, msg: "删除报修记录失败"});
+      res.json({code: 500, msg: "删除报修记录失败"})
     })
 })
 // 获取统计数据
@@ -243,4 +243,4 @@ router.post('/showQRCode', function(req, res, next){
   })
 })
 
-module.exports = router;
+module.exports = router

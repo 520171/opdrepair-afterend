@@ -6,7 +6,7 @@ const text = function (toUser, fromUser, timeStamp, content) {
             <CreateTime>${timeStamp}</CreateTime>
             <MsgType><![CDATA[text]]></MsgType>
             <Content><![CDATA[${content}]]></Content>
-          </xml>`;
+          </xml>`
 }
 
 module.exports = {
