@@ -5,48 +5,48 @@ const accToken = require('../server/server').acc
 // const crypto = require('crypto')
 
 
-const getAccessToken = function (agentID, edit=false) {
+const getAccessToken = function (config, edit=false) {
   const currentSeconds = new Date().getTime()
   return new Promise((res, rej) =>{
     if(!edit){
-      accToken.showAccessToken('tb_acctoken', '*', 'at_agentid', agentID)
+      accToken.showAccessToken('tb_acctoken', '*', 'at_agentid', config.AgentId)
         .then(msg => {
           if(0 != msg.length){
             if(currentSeconds - msg[0].at_date >= 6000000){
-              requestAccessToken()
+              requestAccessToken(config)
                 .then(accessToken => {
-                  console.log(`change:${accessToken}`)
+                  // console.log(`change:${accessToken}`)
                   res(accessToken)
-                  accToken.editAccTokenByAgentId(accessToken, currentSeconds, agentID)
+                  accToken.editAccTokenByAgentId(accessToken, currentSeconds, config.AgentId)
                 })
                 .catch(err => rej(err))
             }else{
               res(msg[0].at_msg)
             }
           }else{
-            requestAccessToken()
+            requestAccessToken(config)
               .then(accessToken => {
                 res(accessToken)
-                accToken.addAccessToken('tb_acctoken', ['at_agentid', 'at_msg', 'at_date'], [agentID, accessToken, currentSeconds])
+                accToken.addAccessToken('tb_acctoken', ['at_agentid', 'at_msg', 'at_date'], [config.AgentId, accessToken, currentSeconds])
               })
               .catch(err => err)
           }
         })
         .catch(err => rej('error'))
     } else {
-      console.log(`tokenelse`)
-      requestAccessToken()
+      // console.log(`tokenelse`)
+      requestAccessToken(config)
         .then(accessToken => {
-          console.log(`change:${accessToken}`)
+          // console.log(`change:${accessToken}`)
           res(accessToken)
-          accToken.editAccTokenByAgentId(accessToken, currentSeconds, agentID)
+          accToken.editAccTokenByAgentId(accessToken, currentSeconds, config.AgentId)
         })
         .catch(err => rej(err))
     }
   })
 }
 
-const requestAccessToken = function(){
+const requestAccessToken = function(config){
   // let result = 0
   // const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=${grant_type}&appid=${appid}&secret=${secret}`
   const url = `https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=${config.corpid}&corpsecret=${config.corpsecret}`
@@ -62,13 +62,13 @@ const requestAccessToken = function(){
   })
 }
 // 企业微信报修请求模板
-function sendTemplateMsg(access_token, agentId, touser, userName, department, detail) {
+function sendTemplateMsg(access_token, touser, userName, department, detail, config) {
   // const url = `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${access_token}` //发送模板消息的接口
   const url = `https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${access_token}` //发送模板消息的接口
   const requestData = { //发送模板消息的数据
     "touser": touser,
     "msgtype": "text",
-    "agentid" : agentId,
+    "agentid" : config.AgentId,
     "text" : {
       "content" : `你有新的报修请求\n报修人：${userName}\n报修人所属部门：${department}\n故障现象：${detail}`
     },
@@ -83,11 +83,11 @@ function sendTemplateMsg(access_token, agentId, touser, userName, department, de
     if (!error && response.statusCode == 200) {
       if(0 == body.errcode){
         console.log('消息推送成功')
-      } else if(40014 == body.errcode) {
-        getAccessToken(agentId, true)
+      } else if(40014 == body.errcode|| 42001 == body.errcode) {
+        getAccessToken(config,true)
           .then(token => {
             console.log(`token:${token}`)
-            sendTemplateMsg(token, agentId, touser, userName, department, detail)
+            sendTemplateMsg(token, touser, userName, department, detail)
           })
           .catch(err => console.log(err))
       }
@@ -97,6 +97,39 @@ function sendTemplateMsg(access_token, agentId, touser, userName, department, de
   })
 }
 
+
+
+// 小程序通知消息
+function sendXCXMsg(access_token, config){
+  const url = `https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=${access_token}`
+  const requestData = {
+    "touser" : config.touser,
+    "msgtype" : config.msgtype,
+    "miniprogram_notice" : config.miniprogram_notice
+  }
+  request({
+    body: JSON.stringify(requestData),
+    method: "POST",//请求方式，默认为get
+    url: url
+  }, function(error, response, body) {
+    console.log(body)
+    body = JSON.parse(body)
+    if (!error && response.statusCode == 200) {
+      if(0 == body.errcode){
+        console.log('消息推送成功')
+      } else if(40014 == body.errcode || 42001 == body.errcode) {
+        getAccessToken(config, true)
+          .then(token => {
+            console.log(`token:${token}`)
+            sendXCXMsg(token, config)
+          })
+          .catch(err => console.log(err))
+      }
+    } else {
+      console.log(body.errcode)
+    }
+  })
+}
 
 // /////////////解密/////////////////////////////////////////////////////
 //
@@ -234,10 +267,121 @@ const handlePostMsg = function(req){
 //   return newBuff
 // }
 
+const sendRepairMsg = function(config) {
+  // const config = {
+  //   req,
+  //   touser,
+  //   name,
+  //   jobNo,
+  //   description
+  // }
+  const wxWorkconfig = {
+    "AgentId": "1000003",
+    "corpsecret": "P2Ujgzi6iQTKerguLUCmh66ZYVL3HWVJgvoIhF9GOU4",
+    "corpid": "wwdd83397758bfd8ec",
+    "touser" : config.touser || "ZhongJunJie",
+    "msgtype": "miniprogram_notice",
+    "miniprogram_notice" : {
+      "appid": "wx4b26aefcc1c5b55f",
+      "page": `pages/index/index?name=${config.name}&jobNo=${config.jobNo}`,
+      "title": "报修消息推送",
+      "description": config.description,
+      "content_item": [
+        {
+          "key": "报修人姓名",
+          "value": config.req.body.name
+        },
+        {
+          "key": "所属部门",
+          "value": config.req.body.departmentName
+        },
+        {
+          "key": "报修类型",
+          "value": 1 == config.req.body.malfunctionNo? "电脑故障" : 2 == config.req.body.malfunctionNo? '打印机故障' : "其他问题"
+        },
+        {
+          "key": "报修详情",
+          "value": config.req.body.detailMsg || "空"
+        },
+        {
+          "key": "报修时间",
+          "value": config.req.body.date
+        }
+      ]
+    }
+  }
+  getAccessToken(wxWorkconfig)
+    .then(token => {
+      // console.log(token)
+      sendXCXMsg(token, wxWorkconfig)
+    })
+    .catch(err => {
+      console.log(err)
+      // console.log(err)
+    })
+}
+
+const sendReplyMsg = function(config) {
+  // const config = {
+  //   req,
+  //   touser,
+  //   name,
+  //   jobNo,
+  //   description
+  // }
+  const wxWorkconfig = {
+    "AgentId": "1000003",
+    "corpsecret": "P2Ujgzi6iQTKerguLUCmh66ZYVL3HWVJgvoIhF9GOU4",
+    "corpid": "wwdd83397758bfd8ec",
+    "touser" : config.touser || "ZhongJunJie",
+    "msgtype": "miniprogram_notice",
+    "miniprogram_notice" : {
+      "appid": "wx4b26aefcc1c5b55f",
+      "page": `pages/index/index?name=${config.name}&jobNo=${config.jobNo}`,
+      "title": "报修消息推送",
+      "description": config.description,
+      "content_item": [
+        {
+          "key": "报修详情",
+          "value": config.req.body.s_msg || "空"
+        },
+        {
+          "key": "报修时间",
+          "value": config.req.body.s_date || "空"
+        },
+        {
+          "key": "回复人",
+          "value": config.req.body.name || "空"
+        },
+        {
+          "key": "回复时间",
+          "value": config.req.body.date || "空"
+        },
+        {
+          "key": "回复内容",
+          "value": config.req.body.dialog || "空"
+        }
+      ]
+    }
+  }
+  getAccessToken(wxWorkconfig)
+    .then(token => {
+      // console.log(token)
+      sendXCXMsg(token, wxWorkconfig)
+    })
+    .catch(err => {
+      console.log(err)
+      // console.log(err)
+    })
+}
+
 
 
 module.exports = {
   getAccessToken,
-  sendTemplateMsg,
-  handlePostMsg
+  // sendTemplateMsg,
+  handlePostMsg,
+  // sendXCXMsg,
+  sendRepairMsg,
+  sendReplyMsg
 }

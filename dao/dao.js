@@ -155,8 +155,8 @@ const loginSys = (tblName, attributename, attribute, attributename2, attribute2)
 
 // 跨表查询用户信息
 const selectAllUsers = (pageNo, name) => {
-    let sql = name ? `select tb_user.*, tb_department.* from tb_user inner join tb_department on tb_department.d_no = tb_user.d_no where u_name like ? limit ?, ?`:
-      `select tb_user.*, tb_department.* from tb_user inner join tb_department on tb_department.d_no = tb_user.d_no limit ?, ?`
+    let sql = name ? `select tb_user.*, tb_department.* from tb_user inner join tb_department on tb_department.d_no = tb_user.d_no where u_name like ? order by u_id desc limit ?, ?`:
+      `select tb_user.*, tb_department.* from tb_user inner join tb_department on tb_department.d_no = tb_user.d_no order by u_id desc limit ?, ?`
     let replaces = name ? [`%${name}%`, (pageNo-1)*pageSize, pageSize] : [(pageNo-1)*pageSize, pageSize]
     sql = mysql.format(sql, replaces)
     console.log(sql)
@@ -188,11 +188,12 @@ const selectTotalNum = (tblName, key , colName, name) => {
 }
 
 // 更新员工
-const updateUser = (attribute, attribute2, attribute3, attribute4, attribute5, attribute6) => {
+const updateUser = (attribute, attribute2, attribute3, attribute4, attribute5, attribute6, attribute7) => {
     return new  Promise((resolve, reject) => {
-        let sql = 'update tb_user set u_name = ?, u_jobno = ?, d_no = ?, u_gender = ?, u_flag = ? where u_id = ?'
-        const replaces = [attribute, attribute2, attribute3, attribute4, attribute5, attribute6]
+        let sql = 'update tb_user set u_name = ?, u_jobno = ?, d_no = ?, u_gender = ?, u_flag = ?, u_userid = ? where u_id = ?'
+        const replaces = [attribute, attribute2, attribute3, attribute4, attribute5, attribute6, attribute7]
         sql = mysql.format(sql, replaces)
+        console.log(sql)
         db.query(sql, (err, rows) => {
             if(err) {
                 reject(err)
@@ -236,10 +237,23 @@ const updateDepartment = (attribute, attribute2, attribute3) => {
 
 // ///////////////////////////////报修记录管理//////////////////////////////////
 // 查询所有的报修记录
-const selectRepairs = (colName, pageNo, name) => {
-    let sql = name ? `select tb_user.*, tb_service.*, tb_department.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where ?? like ? order by tb_service.s_id desc limit ?, ?` :
-      `select tb_user.*, tb_service.*, tb_department.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno order by tb_service.s_id desc limit ?, ?`
-    let replaces = name ? [colName, `%${name}%`, (pageNo-1)*pageSize, pageSize] : [(pageNo-1)*pageSize, pageSize ]
+const selectRepairs = (colName, pageNo, name, date) => {
+    let sql = ''
+    let replaces = []
+    if (name && !date) {
+        sql = `select tb_user.*, tb_service.*, tb_department.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where ?? like ? order by tb_service.s_id desc limit ?, ?`
+        replaces = [colName, `%${name}%`, (pageNo-1)*pageSize, pageSize]
+    } else if (!name && !date) {
+        sql = `select tb_user.*, tb_service.*, tb_department.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno order by tb_service.s_id desc limit ?, ?`
+        replaces = [(pageNo-1)*pageSize, pageSize ]
+    } else if (!name && date) {
+        sql = `select tb_user.*, tb_service.*, tb_department.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where s_date between ? and ? order by tb_service.s_id desc limit ?, ?`
+        replaces = [date[0], date[1], (pageNo-1)*pageSize, pageSize]
+    } else if (name && date) {
+        sql = `select tb_user.*, tb_service.*, tb_department.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where ?? like ? and s_date between ? and ? order by tb_service.s_id desc limit ?, ?`
+        replaces = [colName, `%${name}%`, date[0], date[1], (pageNo-1)*pageSize, pageSize]
+    }
+
     sql = mysql.format(sql, replaces)
     console.log(sql)
     return new Promise((resolve, reject) => {
@@ -253,11 +267,22 @@ const selectRepairs = (colName, pageNo, name) => {
 }
 
 // 查询报修记录数，用于前端分页
-const selectTotalServicesNum = (colName, name) => {
-    console.log(name)
-    let sql = name ? 'select s_id from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where ?? like ?' :
-      'select s_id from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno'
-    let replaces = [colName, `%${name}%`]
+const selectTotalServicesNum = (colName, name, date) => {
+    let sql = ''
+    let replaces = []
+    if (name && !date) {
+        sql = 'select s_id from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where ?? like ?'
+        replaces = [colName, `%${name}%`]
+    } else if (!name && !date) {
+        sql = 'select s_id from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno'
+    } else if (!name && date) {
+        sql = 'select s_id from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where s_date between ? and ?'
+        replaces = [date[0], date[1]]
+    } else if (name && date) {
+        sql = 'select s_id from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno where ?? like ? and s_date between ? and ?'
+        replaces = [colName, `%${name}%`, date[0], date[1]]
+    }
+
     sql = mysql.format(sql, replaces)
     console.log(sql)
     return new Promise((resolve, reject) => {
@@ -314,8 +339,40 @@ const selectStatistics2 = function(){
     })
 }
 
+// 查询excel数据
+const selectExcelData = function(colName, name, date){
+    return new  Promise((resolve, reject) => {
+        let sql =''
+        let replaces = []
+        if (name && !date) {
+            sql = `select tb_user.*, tb_service.*, tb_department.*, tb_type.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno inner join tb_type on t_type = s_type where ?? like ? order by tb_service.s_id desc limit ?, ?`
+            replaces = [colName, `%${name}%`, 0, 300]
+        } else if (!name && !date) {
+            sql = `select tb_user.*, tb_service.*, tb_department.*, tb_type.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno inner join tb_type on t_type = s_type order by tb_service.s_id desc limit ?, ?`
+            replaces = [0, 300 ]
+        } else if (!name && date) {
+            sql = `select tb_user.*, tb_service.*, tb_department.*, tb_type.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno inner join tb_type on t_type = s_type where s_date between ? and ? order by tb_service.s_id desc limit ?, ?`
+            replaces = [date[0], date[1], 0, 300]
+        } else if (name && date) {
+            sql = `select tb_user.*, tb_service.*, tb_department.*, tb_type.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno inner join tb_type on t_type = s_type where ?? like ? and s_date between ? and ? order by tb_service.s_id desc limit ?, ?`
+            replaces = [colName, `%${name}%`, date[0], date[1], 0, 300]
+        }
+
+        // let sql = `select tb_user.*, tb_service.*, tb_department.*, tb_type.* from tb_user inner join tb_department on tb_user.d_no = tb_department.d_no inner join tb_service on tb_service.u_jobno = tb_user.u_jobno inner join tb_type on t_type = s_type where s_date between ? and ?`
+        // const replaces = [beginDate, endDate]
+
+        sql = mysql.format(sql, replaces)
+        db.query(sql, (err, rows) => {
+            if(err) {
+                reject(err)
+            }
+            resolve(rows)
+        })
+    })
+}
+
 
 module.exports = { selectRecords, insert, select, selectDialogs, login, loginSys, selectTotalNum,
      selectAllUsers, selectAllDepartments, show, deleteRows, updateDepartment, updateUser, selectRepairs,
-    selectTotalServicesNum, updateAccTokenByAgentId, selectStatistics,selectStatistics2 }
+    selectTotalServicesNum, updateAccTokenByAgentId, selectStatistics,selectStatistics2,selectExcelData }
 

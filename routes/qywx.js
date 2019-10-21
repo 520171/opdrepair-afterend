@@ -19,6 +19,7 @@ router.get('/', function(req, res, next){
 
 router.post('/', function(req, res, next){
   const xml = wxcpt.getMsgObj(req)
+  console.log(xml)
   switch (xml.MsgType[0]) {
     case 'text':
       console.log(xml.Content[0])

@@ -73,7 +73,9 @@ router.post('/listpage', function (req, res, next){
 // 添加员工
 router.post('/addUser', function (req, res, next){
   console.log(req.body)
-  server.addUser('tb_user', ['u_jobno', 'u_name', 'd_no', 'u_gender', 'u_flag'], [req.body.params.jobNum, req.body.params.name, req.body.params.d_no, req.body.params.sex, req.body.params.u_flag])
+  server.addUser('tb_user',
+    ['u_jobno', 'u_name', 'd_no', 'u_gender', 'u_flag', 'u_userid'],
+    [req.body.params.jobNum, req.body.params.name, req.body.params.d_no, req.body.params.sex, req.body.params.u_flag, req.body.params.u_userid])
     .then((msg) => {
       console.log(msg)
       res.json({code: 200, msg: "添加部门成功"})
@@ -101,7 +103,7 @@ router.post('/removeUsers', function (req, res, next){
 // 更新员工
 router.post('/updateUser', function (req, res, next){
   console.log(req.body)
-  server.editUser(req.body.params.u_name, req.body.params.u_jobno, req.body.params.d_no, req.body.params.u_gender, req.body.params.u_flag, req.body.params.u_id )
+  server.editUser(req.body.params.u_name, req.body.params.u_jobno, req.body.params.d_no, req.body.params.u_gender, req.body.params.u_flag, req.body.params.u_userid, req.body.params.u_id)
     .then((msg) => {
       console.log(msg)
       res.json({code: 200, msg: "更新员工成功"})
@@ -178,10 +180,9 @@ router.post('/updateDepartment', function (req, res, next){
 // /////////////////////////报修记录管理////////////////////////////////
 router.post('/listService', function (req, res, next) {
   const result = {total: 0, repairs: []}
-  // console.log(req.body)
   Promise.all([
-    server.checkTotalServicesNum( 'u_name', req.body.params.name),
-    server.checkRepairs('u_name', req.body.params.page, req.body.params.name),
+    server.checkTotalServicesNum( 'u_name', req.body.params.name, req.body.params.date),
+    server.checkRepairs('u_name', req.body.params.page, req.body.params.name, req.body.params.date),
   ])
     .then(msgs => {
       // console.log(msgs[1])
@@ -236,11 +237,24 @@ router.post('/showQRCode', function(req, res, next){
             } )
         })
         .catch(err => { console.log(err) })
-    }else{
+    } else {
       res.json({ imgDir })
     }
-
   })
+})
+
+//  返回报表数据
+router.post('/showExcelData', function(req, res, next) {
+  console.log(req.body)
+  server.showExcelDate('u_name', req.body.params.name, req.body.params.date)
+    .then(msg => {
+      // console.log(res)
+      res.json({ code: 200, msg })
+    })
+    .catch(err => {
+      console.log(err)
+      res.sendStatus(404)
+    })
 })
 
 module.exports = router

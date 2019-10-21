@@ -85,8 +85,8 @@ const removeUsers = function(tbName, attributename, attributes){
 }
 
 //更新员工
-const editUser = function(attribute, attribute2, attribute3, attribute4, attribute5, attribute6){
-    return dao.updateUser(attribute, attribute2, attribute3, attribute4, attribute5, attribute6)
+const editUser = function(attribute, attribute2, attribute3, attribute4, attribute5, attribute6, attribute7){
+    return dao.updateUser(attribute, attribute2, attribute3, attribute4, attribute5, attribute6, attribute7)
 }
 
 // //////////////////////////////部门管理///////////////////////
@@ -106,12 +106,12 @@ const editDepartment =  function(attribute, attribute2, attribute3){
 }
 
 // //////////////////////保修记录管理/////////////////////////
-const checkRepairs =  function(colName, pageNo, name){
-    return dao.selectRepairs(colName, pageNo, name)
+const checkRepairs =  function(colName, pageNo, name, date){
+    return dao.selectRepairs(colName, pageNo, name, date)
 }
 
-const checkTotalServicesNum = function(colName, name){
-    return dao.selectTotalServicesNum(colName, name)
+const checkTotalServicesNum = function(colName, name, date){
+    return dao.selectTotalServicesNum(colName, name, date)
 }
 
 // 删除报修记录
@@ -140,10 +140,20 @@ const showStatistics2 = function () {
     return dao.selectStatistics2()
 }
 
+// /////////////获取维修人员列表////////////////
+const getMaintenanceStaff = function(tbName, colNames, attributename, attribute){
+    return dao.select(tbName, colNames, attributename, attribute)
+}
+
+// 获取excel数据
+const showExcelDate = function(colName, name, date){
+    return dao.selectExcelData(colName, name, date)
+}
+
 
 module.exports.users = { checkAll, addRepairMsg, showRecords, addImgUrl, showAnnex, showDialogs,
-    addDialog, login, checkUserType }
+    addDialog, login, checkUserType,getMaintenanceStaff }
 module.exports.index = {logSys, checkAllUsers, checkTotalNum, checkAllDepartments, addDepartment,
     removeDepartments, editDepartment, addUser, removeUsers, checkAll, editUser, checkRepairs,
-    checkTotalServicesNum, removeRepairs, showStatistics, showStatistics2 }
+    checkTotalServicesNum, removeRepairs, showStatistics, showStatistics2, showExcelDate }
 module.exports.acc = { addAccessToken, showAccessToken, editAccTokenByAgentId }
