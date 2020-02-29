@@ -1,111 +1,25 @@
 #!/usr/bin/env node
-
-/**
- * Module dependencies.
- */
-
-var app = require('../app');
-var debug = require('debug')('opd-proj:server');
-var http = require('http');
-
-// 引入path、https、fs模块
+// #!/usr/bin/env node用于设置提示
+// 引入path、https、http、fs模块、express实例
+const app = require('../app')
+const http = require('http')
 const https = require('https')
-var path = require('path')
+const path = require('path')
 const fs = require('fs')
+
+// 配置https私钥
 const options = {
-  pfx: fs.readFileSync(path.join(__dirname, '../public','www.opdgr.cn.pfx')),
+  pfx: fs.readFileSync(path.join(__dirname, '../primarykey/www.opdgr.cn.pfx')),
   passphrase: 'sa8r5e478v73'
 }
 
+// 创建http/https服务
+const httpServer = http.createServer(app)
+const httpsServer = https.createServer(options, app)
 
-/**
- * Get port from environment and store in Express.
- */
-
-var port = normalizePort(process.env.PORT || '443');
-app.set('port', port);
-
-/**
- * Create HTTP server.
- */
-
-const httpServer = http.createServer(options, app);
-
-/**
- * Create HTTPS server.
- */
-const server = https.createServer(options, app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
+// 设置http/https服务的端口监听
+httpsServer.listen(23333)
+httpServer.listen(2333)
 
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
 
-httpServer.listen(80);
-httpServer.on('error', onError);
-httpServer.on('listening', onListening);
-
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
-}

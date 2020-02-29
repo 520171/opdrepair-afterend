@@ -5,14 +5,7 @@ const crypt = require('../utils/crypt')
 const fs = require('fs')
 const path = require('path')
 const xcxUtils = require('../utils/xcxUtils')
-
-router.post('/autoLogin', function(req, res, next){
-  if (req.session.flag) {
-    res.json(req.session.flag)
-  }else{
-    res.json({code: 500, msg: "账号或密码错误"})
-  }
-})
+const tokenConfig = require('../utils/tokenConfig')
 
 // 系统登陆
 router.post('/login', function (req, res, next) {
@@ -23,20 +16,22 @@ router.post('/login', function (req, res, next) {
     .then(function (msg) {
       // console.log(msg)
       if (1 === msg.length) {
-        user.name = msg[0].s_account
-        user.username = msg[0].s_name
-        req.session.flag = { code: 200, user: user, msg: "请求成功" }
-        if (flag) {
-          const encrypt = crypt.encrypt(JSON.stringify({account: req.body.username, password: req.body.password}))
-          res.cookie('user', encrypt, {
-            maxAge: 1000*60*60*24*30
-          })
-        } else {
-          res.cookie('user', '', {
-            maxAge: -1
-          })
-        }
-        res.json({code: 200, user: user, msg: "请求成功"})
+        // user.name = msg[0].s_account
+        // user.username = msg[0].s_name
+        // req.session.flag = { code: 200, user: user, msg: "请求成功" }
+        // if (flag) {
+        //   const encrypt = crypt.encrypt(JSON.stringify({account: req.body.username, password: req.body.password}))
+        //   res.cookie('user', encrypt, {
+        //     maxAge: 1000*60*60*24*30
+        //   })
+        // } else {
+        //   res.cookie('user', '', {
+        //     maxAge: -1
+        //   })
+        // }
+        // res.json({code: 200, user: user, msg: "请求成功"})
+        const token = tokenConfig.generatorToken({ username: req.body.username })
+        res.json({code: 200, user: user, msg: "请求成功", token})
       } else {
         res.json({code: 500, msg: "账号或密码错误"})
       }
@@ -45,7 +40,6 @@ router.post('/login', function (req, res, next) {
       console.log(msg)
       res.json({code: 500, msg: "请求失败"})
     })
-
 })
 
 // //////////////////////////////员工管理/////////////////////////////////////////

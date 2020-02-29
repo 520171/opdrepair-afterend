@@ -12,7 +12,6 @@ const configWX = {
 }
 
 const wxcpt = new wxUtil.WorkWechat(configWX)
-
 router.get('/', function(req, res, next){
   wxcpt.connectServer(req, res)
 })

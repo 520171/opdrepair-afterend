@@ -9,24 +9,16 @@ const indexRouter = require('./routes/index')
 const usersRouter = require('./routes/users')
 const qywx = require('./routes/qywx')
 const history =  require('connect-history-api-fallback') // 使用connect-history-api-fallback中间件
-const session = require('express-session')
 const fs = require('fs') // 导入fs工具用于创建输出流
-
+const tokenConfig = require('./utils/tokenConfig')
+const compression = require('compression')
 const app = express()
-// 使用connect-history-api-fallback中间件 单页面应用防止刷新出错
 
+app.use(compression())
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'ejs')
-app.use(session({
-  secret: 'opdzjj',
-  resave: false,
-  saveUninitialized: false,
-  cookie : {
-    maxAge : 1000 * 60 * 60 * 2 // 设置 session 的有效时间，单位毫秒
-  }
-}))
 
 // 日志管理
 // 自定义日期
@@ -36,7 +28,7 @@ logger.token('localDate', function (req) {
   return date.toLocaleString()
 })
 logger.format('opd', ':remote-addr - :remote-user [:localDate] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"')
-const loggerPath = fs.createWriteStream(path.join(__dirname, 'logger.txt'), {flags: 'a'}) // 创建输出流，flags为a表示append，以追加形式写入文件
+const loggerPath = fs.createWriteStream(path.join(__dirname, 'logger.log'), {flags: 'a'}) // 创建输出流，flags为a表示append，以追加形式写入文件
 app.use(logger('dev'))
 app.use(logger('opd', { stream: loggerPath })) // 使用日志中间件，并设置输出流
 
@@ -64,13 +56,7 @@ app.use(history({
       to: function (context) {
         return context.parsedUrl.path
       }
-    },
-    // {
-    //   from: /^\/qywx/,
-    //   to: function (context) {
-    //     return context.parsedUrl.path
-    //   }
-    // }
+    }
   ]
 }))
 
@@ -81,14 +67,16 @@ app.all("*", (req, res, next) => {
   if('https' === req.protocol && req.hostname.startsWith('www.')){
     next()
   } else {
-    console.log(`https://www.opdgr.cn${req.path}`)
-    res.redirect(307, `https://www.opdgr.cn${req.path}`)
+    // console.log(`https://www.opdgr.cn${req.path}`)
+    res.redirect(307, `https://www.opdgr.cn:23333${req.path}`)
   }
 })
 
 // 静态资源放在请求拦截之后
 app.use(express.static(path.join(__dirname, 'public/dist')))
 app.use(express.static(path.join(__dirname, 'public/uploads')))
+app.use(tokenConfig.analyzeToken)
+
 
 //路由
 app.use('/', indexRouter)

@@ -152,7 +152,6 @@ router.post('/getAnnex',  function(req, res, next) {
   .catch(function(msg){
     console.log(msg)
     res.json({message: "fail"})})
-
 })
 
 //获取留言记录!!!!
